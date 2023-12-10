@@ -67,13 +67,6 @@ void importresidents()
 }
 
 
-
-
-
-
-
-
-
 void querymenu()
 {
 	int choice;
