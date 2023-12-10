@@ -3,7 +3,7 @@
 typedef struct {           //定义住户信息结构体
 	char name[20];        //户主姓名
 	char gender;       //户主性别
-	char phonenumber; //联系电话
+	int phonenumber; //联系电话
 	int building;         //楼号
 	int unit;            //单元号
 	int room;         //房间号
@@ -37,7 +37,7 @@ void menu()
 	printf("                             ------------------------------------------\n");
 	printf("                            |           1.住户信息管理                 |\n");
 	printf("                            |           2.缴费情况查询                 |\n");
-	printf("                            |           3.物业缴费                     |\n");
+ 	printf("                            |           3.物业缴费                     |\n");
 	printf("                            |           4.统计未按期缴费住户           |\n");
 	printf("                            |           0.退出程序                     |\n");
 	printf("                             ------------------------------------------\n");
@@ -63,7 +63,25 @@ void menu()
 void importresidents()
 {
 
-
+	FILE* fp;
+	errno_t err = fopen_s(&fp, "住户信息.txt", "r");
+	if (err == 1)
+	{
+		printf("file error\n");
+		exit(1);
+	}
+	fscanf_s(fp, "%d", &residentcount);
+	printf("%d", residentcount);
+	for (int i = 0; i < residentcount; i++)
+	{
+		residentinfo resident;
+		fscanf_s(fp, "%s %c %d %d %d %d %lf %lf %lf", resident.name, &resident.gender,
+			resident.phonenumber, &resident.building, &resident.unit, &resident.room,
+			&resident.area, &resident.paymonth, &resident.publicpay);
+		residents[i] = resident;
+	}	
+		fclose(fp);
+	
 }
 
 
