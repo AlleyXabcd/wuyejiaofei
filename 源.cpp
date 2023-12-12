@@ -1,12 +1,12 @@
-#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS 
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include <time.h>
 #include<io.h>
-typedef struct 
-{                    //定义住户信息结构体
-	char name[20];        //户主姓名
+typedef struct {                   
+	//定义住户信息结构体
+	char name[10];        //户主姓名
 	char gender[2];         //户主性别
 	char phonenumber[20]; //联系电话
 	int building;         //楼号
@@ -16,30 +16,46 @@ typedef struct
 	int paymonth;    //物业月单价
 	float publicpay;  //公摊水电费
 }residentinfo;
+
+typedef struct        //定义缴费信息结构体
+{
+	char paytime[30];//缴费时间
+	float pay;//缴费金额
+	int year; //缴费截止年份
+	int month;//缴费截止月份
+}payinfo;
+
+
+//主页面函数
 void menu();
+
+//从文件中导入住户信息，需要指定文件的路径
 void importresidents(char path[]);
+
+//查找主页面
 void querymenu();
+
+//通过房间号查找住户信息
 void querybyroom(int rnum);
+
+//通过户主姓名查找住户信息
 void querybyname(char nname[]);
+
+//物业缴费
 void payment();
+
+//统计未缴费住户信息
 void overduecount();
 
-long countLines(FILE* file)  //统计文件的行数
-{
-	char ch;
-	long count = 0;
+//统计文件中的行数
+//住户信息中的每一行代表一个住户信息
+//统计住户信息文件中的行数可以表示总住户数
+int countLines(FILE*file);
 
-	while ((ch = fgetc(file)) != EOF) {
-		if (ch == '\n') {
-			count++;
-		}
-	}
-	rewind(file);//文件指针归位
-	return count;
-}
+
 
 residentinfo residents[100];
-int residentcount = 0;
+int residentcount ; 
 char* a = (char*)malloc(10 * sizeof(char));
 int main()
 {
@@ -69,6 +85,7 @@ int main()
 			}
 	} while (choice);
 	return 0;
+
 }
 void menu()
 {
@@ -81,7 +98,6 @@ void menu()
 	printf("                            |           0.退出程序                     |\n");
 	printf("                             ------------------------------------------\n");
 }
-
 void importresidents(char path[])
 {
 	FILE* fp;
@@ -89,7 +105,6 @@ void importresidents(char path[])
 	if ( NULL == fp)
 		return ;
 	residentcount = countLines(fp);
-	
 	for (int i = 0; i < residentcount; i++)
 	{
 		fscanf_s(fp, "%s %s %s %d %d %d %f %d %f\n",residents[i].name, 20, residents[i].gender, 20, 
@@ -216,71 +231,101 @@ void querybyname(char nname[])
 
 
 }
-void payment() 
+void payment()
 {
-		char name[20];//用户姓名
-		int month = 0;//缴费月数
-		printf("请输入你的姓名：");
-		scanf("%s", name);
-		int i = 0;
-		for (i = 0; i < residentcount; i++) 
+	char name[20];//用户姓名
+	int month = 0;//缴费月数
+	printf("请输入你的姓名：");
+	scanf("%s", name);
+	int i = 0;
+	for (i = 0; i < residentcount; i++)
+	{
+		if (!strcmp(residents[i].name, name))
 		{
-			if (!strcmp(residents[i].name,name)) 
-			{
-				break;
-			}
+			break;
 		}
-		printf("请您选择您要缴纳的月数");
-		scanf("%d", &month);//缴纳优惠政策需要确定缴纳月数。
-		double pay;
-		if (month < 12)		
-		{
-			pay = (residents[i].area * residents[i].paymonth + residents[i].publicpay) * month;
-			printf("姓名%s,性别%s,电话%s,楼号%d,单元号%d,房间号%d,住房面积%f\n", residents[i].name, residents[i].gender, residents[i].phonenumber, residents[i].building, residents[i].unit, residents[i].room, residents[i].area);
-			printf("您应该缴纳的物业费为:%f元\n", pay );
-		}
-		else if (month > 11 and month < 24)
-		{
-			pay = ((residents[i].area * residents[i].paymonth + residents[i].publicpay) * month) * 0.95;
-			printf("姓名%s,性别%s,电话%s,楼号%d,单元号%d,房间号%d,住房面积%f\n", residents[i].name, residents[i].gender, residents[i].phonenumber, residents[i].building, residents[i].unit, residents[i].room, residents[i].area);			
-			printf("您应该缴纳的物业费为:%f元\n", pay);
-		}
-		else
-		{
-			pay = ((residents[i].area * residents[i].paymonth + residents[i].publicpay) * month) * 0.9;
-			printf("姓名%s,性别%s,电话%s,楼号%d,单元号%d,房间号%d,住房面积%f\n", residents[i].name, residents[i].gender, residents[i].phonenumber, residents[i].building, residents[i].unit, residents[i].room, residents[i].area);
-			printf("\n您应该缴纳的物业费为:%f元\n", pay);
-	     }
-		
-		sprintf(a + i, "./缴费记录/%s%d", residents[i].name, residents[i].room);
-		FILE* fp = fopen(a+i, "a+");
-		if (fp == NULL)
-		{
-			printf("error");
-			return;
-		}
-		time_t current_time;
-		struct tm* time_info;
-		int current_month, current_year;
-		char time1[28];
-		// 获取当前时间  
-		time(&current_time);
-		time_info = localtime(&current_time);
+	}
+	printf("请您选择您要缴纳的月数");
+	scanf("%d", &month);//缴纳优惠政策需要确定缴纳月数。
+	double pay;
+	if (month < 12)
+	{
+		pay = (residents[i].area * residents[i].paymonth + residents[i].publicpay) * month;
+		printf("姓名%s,性别%s,电话%s,楼号%d,单元号%d,房间号%d,住房面积%f\n", residents[i].name, residents[i].gender, residents[i].phonenumber, residents[i].building, residents[i].unit, residents[i].room, residents[i].area);
+		printf("您应该缴纳的物业费为:%f元\n", pay);
+	}
+	else if (month > 11 and month < 24)
+	{
+		pay = ((residents[i].area * residents[i].paymonth + residents[i].publicpay) * month) * 0.95;
+		printf("姓名%s,性别%s,电话%s,楼号%d,单元号%d,房间号%d,住房面积%f\n", residents[i].name, residents[i].gender, residents[i].phonenumber, residents[i].building, residents[i].unit, residents[i].room, residents[i].area);
+		printf("您应该缴纳的物业费为:%f元\n", pay);
+	}
+	else
+	{
+		pay = ((residents[i].area * residents[i].paymonth + residents[i].publicpay) * month) * 0.9;
+		printf("姓名%s,性别%s,电话%s,楼号%d,单元号%d,房间号%d,住房面积%f\n", residents[i].name, residents[i].gender, residents[i].phonenumber, residents[i].building, residents[i].unit, residents[i].room, residents[i].area);
+		printf("\n您应该缴纳的物业费为:%f元\n", pay);
+	}
 
-		// 获取当前月份  年份
-		current_month = time_info->tm_mon + 1; // 月份从0开始计数，所以需要加1
-		current_year = time_info->tm_year;
-		sprintf(time1, "%d年%d月%d日 %d:%d:%d", 1900 + time_info->tm_year, 1 + time_info->tm_mon, time_info->tm_mday, time_info->tm_hour, time_info->tm_min, time_info->tm_sec);
-		fprintf(fp, "您在%s缴纳物业费%f元，到期年月:%d年%d月\n",time1,pay, current_year+1900+ (current_month + month)/12,(current_month + month)%12);
+	sprintf(a + i, "./缴费记录/%s%d", residents[i].name, residents[i].room);
+	FILE* fp = fopen(a + i, "a+");
+	if (fp == NULL)
+	{
+		printf("error");
+		return;
+	}
+	time_t current_time;
+	struct tm* time_info;
+	int current_month, current_year;
+	char time1[28];
+	// 获取当前时间  
+	time(&current_time);
+	time_info = localtime(&current_time);
 
+	// 获取当前月份  年份
+	current_month = time_info->tm_mon + 1; // 月份从0开始计数，所以需要加1
+	current_year = time_info->tm_year;
+
+
+	sprintf(time1, "%d年%d月%d日%d:%d:%d", 1900 + time_info->tm_year, 1 + time_info->tm_mon, time_info->tm_mday, time_info->tm_hour, time_info->tm_min, time_info->tm_sec);
+	if (countLines(fp) == 1)
+	{
+		fprintf(fp, "您在 %s 缴纳物业费 %f 元,到期年月: %d年%d月\n", time1, pay, current_year + 1900 + (current_month + month) / 12, (current_month + month) % 12);
+	}
+	else
+	{
+		int line = countLines(fp);
+		char arr[100];
+		int i;
+		for (i = 0; i < line - 1; i++)
+		{
+			fgets(arr, 100, fp);
+		} 
+		payinfo payinfo;
+		fscanf_s(fp,"您在 %s 缴纳物业费 %f 元,到期年月: %d年%d月\n",payinfo.paytime,30, &payinfo.pay, &payinfo.year,&payinfo.month);
+		fseek(fp, 0, SEEK_END);
+		fprintf(fp, "您在 %s 缴纳物业费 %f 元,到期年月: %d年%d月\n", time1, pay, payinfo.year+ (payinfo.month + month) / 12, (payinfo.month + month) % 12);
+	}
 		fclose(fp);
 		system("pause");
 }
+
 void overduecount()
 {
 
-
-
-
-	
 }
+
+int countLines(FILE*file)
+{
+	char ch;
+	long count = 0;
+
+	while ((ch = fgetc(file)) != EOF) {
+		if (ch == '\n') {
+			count++;
+		}
+	}
+	rewind(file);//文件指针归位
+	return count;
+}
+
