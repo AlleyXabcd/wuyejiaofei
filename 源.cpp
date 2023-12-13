@@ -15,6 +15,7 @@ typedef struct {
 	float area;       //面积
 	int paymonth;    //物业月单价
 	float publicpay;  //公摊水电费
+	payinfo last_pay;//最近一次缴费的日期
 }residentinfo;
 
 typedef struct        //定义缴费信息结构体
@@ -24,6 +25,8 @@ typedef struct        //定义缴费信息结构体
 	int year; //缴费截止年份
 	int month;//缴费截止月份
 }payinfo;
+
+
 
 
 //主页面函数
@@ -111,7 +114,7 @@ void importresidents(char path[])
 			residents[i].phonenumber, 20, &residents[i].building,
 			&residents[i].unit, &residents[i].room, &residents[i].area,
 			&residents[i].paymonth, &residents[i].publicpay);
-		sprintf(a + i, "./缴费记录/%s%d",residents[i].name, residents[i].room);
+		sprintf(a + i, "./缴费记录/%s%d.txt",residents[i].name, residents[i].room);
 		if (_access(a + i, 0)==-1)//判断文件是否存在（存在则放回0，不存在放回-1）
 		{
 			FILE* fp2 = fopen(a + i, "a+");
@@ -179,7 +182,7 @@ void querybyroom(int rnum)
 	{
 		printf("找不到该房间号");
 	}
-	sprintf(a + i, "./缴费记录/%s%d", residents[i].name, residents[i].room);
+	sprintf(a + i, "./缴费记录/%s%d.txt", residents[i].name, residents[i].room);
 	FILE* fp = fopen(a+i, "r+");
 	if(countLines(fp)==1)
 	{ 
@@ -267,7 +270,7 @@ void payment()
 		printf("\n您应该缴纳的物业费为:%f元\n", pay);
 	}
 
-	sprintf(a + i, "./缴费记录/%s%d", residents[i].name, residents[i].room);
+	sprintf(a + i, "./缴费记录/%s%d.txt", residents[i].name, residents[i].room);
 	FILE* fp = fopen(a + i, "a+");
 	if (fp == NULL)
 	{
@@ -313,7 +316,98 @@ void payment()
 void overduecount()
 {
 
+
+	time_t current_time;
+	struct tm* time_info;
+	time(&current_time);
+	time_info = localtime(&current_time);
+	int current_month, current_year;
+	current_month = time_info->tm_mon + 1;
+	current_year = time_info->tm_year + 1900;
+
+
+
+	//文件存储信息结构体 
+	struct _finddata_t fileinfo;
+	//保存文件句柄 
+	intptr_t fHandle;
+	if ( (fHandle=_findfirst("C:/Users/lenovo/Desktop/物业缴费程序/缴费记录/*.txt", &fileinfo))==-1)
+	{
+		printf("当前目录下没有txt文件\n");
+		return;
+	}
+	else {
+		do {
+			printf("找到文件:%s,文件大小：%d\n", fileinfo.name, fileinfo.size);
+
+			char file[50];
+			sprintf(file, "./缴费记录/%s", fileinfo.name);
+			FILE* fp = fopen(file, "r+");
+			int line = countLines(fp);
+			if (line == 1)
+			{
+				printf("没有缴费记录\n");
+			}
+			else
+			{
+				char arr[100];
+				int n;
+				int qianmonth;//总欠费月数
+				for (n = 0; n < line - 1; n++)
+				{
+					fgets(arr, 100, fp);
+				}
+				payinfo payinfo;
+				fscanf_s(fp, "您在 %s 缴纳物业费 %f 元,到期年月: %d年%d月\n", payinfo.paytime, 30, &payinfo.pay, &payinfo.year, &payinfo.month);
+				if (current_year > payinfo.year)
+				{
+					qianmonth = current_year - payinfo.year + current_month - payinfo.year;
+					char a[50];
+					printf("欠费");
+					sprintf(a, "./未按期缴费住户统计/%d_%d", current_year, current_month);
+					FILE* fp1 = fopen(a, "a+");
+					fprintf(fp1, "%s用户已欠费%d个月,总欠费金额元", fileinfo.name, qianmonth);
+					fclose(fp1);
+				}
+				else if (current_year == payinfo.year && current_month > payinfo.month)
+				{
+					qianmonth = current_month - payinfo.year;
+					char a[50];
+					printf("欠费");
+					sprintf(a, "./未按期缴费住户统计/%d_%d", current_year, current_month);
+					FILE* fp1 = fopen(a, "a+");
+					fprintf(fp1, "%s用户已欠费%d个月,总欠费金额元", fileinfo.name, qianmonth);
+					fclose(fp1);
+				}
+
+			}
+		
+
+
+			fclose(fp);
+
+		} while (_findnext(fHandle, &fileinfo) ==0 );
+	}
+	//关闭文件 
+	_findclose(fHandle);
+
+
+	
+
+		
+
+	
+
+	
+
 }
+
+
+
+
+
+
+
 
 int countLines(FILE*file)
 {
@@ -328,4 +422,3 @@ int countLines(FILE*file)
 	rewind(file);//文件指针归位
 	return count;
 }
-
