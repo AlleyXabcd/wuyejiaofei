@@ -230,6 +230,8 @@ void querybyroom(int rnum,residentinfo re[])
 	if (line == 1)               	                       
 	{
 		printf("没有缴费记录\n");
+		printf("即将退回至主页面\n");
+		system("pause");
 		fclose(fp);
 		return;
 	}
@@ -283,6 +285,8 @@ void querybyname(char nname[],residentinfo re[])
 	if (line == 1)               	
 	{
 		printf("没有缴费记录\n");
+		printf("即将退回至主页面\n");
+		system("pause");
 		fclose(fp);
 		return;
 	}
@@ -310,7 +314,7 @@ void payment(residentinfo re[])
 	char name[10];//用户姓名
 	int month = 0;//缴费月数
 	double pay; //需要支付的物业费
-	printf(" 请输入你的姓名：");
+	printf("请输入你的姓名：");
 	scanf("%s", name);
 	int i = 0;
 
@@ -332,7 +336,7 @@ void payment(residentinfo re[])
 		system("pause");
 		return;
 	}
-	printf("输入您要缴纳的月数");
+	printf("输入您要缴纳的月数:");
 	scanf("%d", &month);
 	
 	//缴纳优惠政策需要判定缴纳月数。
@@ -341,20 +345,48 @@ void payment(residentinfo re[])
 	if (month < 12)
 	{
 		pay = (re[i].area * re[i].paymonth + re[i].publicpay) * month;
-		printf("基本信息:姓名%s,性别%s,电话%s,楼号%d,单元号%d,房间号%d,住房面积%2f\n", re[i].name, re[i].gender, re[i].phonenumber, re[i].building, re[i].unit, re[i].room, re[i].area);
-		printf("您应该缴纳的物业费为:%2f元\n", pay);
+	 	
+		printf("*********************************\n");
+		printf("你的基本信息:\n");
+		printf("姓名:%s\n",re[i].name);
+		printf("性别:%s\n",re[i].gender);
+		printf("联系方式:%s\n",re[i].phonenumber);
+		printf("楼号:%d\n",re[i].building);
+		printf("单元号:%d\n",re[i].unit);
+		printf("房间号:%d\n",re[i].room);
+		printf("住房面积:%.2f\n",re[i].area);
+		printf("*********************************\n");
+		printf("您应该缴纳的物业费为:%.2f元\n", pay);
 	}
 	else if (month > 11 and month < 24)
 	{
 		pay = ((re[i].area * re[i].paymonth + re[i].publicpay) * month) * 0.95;
-		printf("基本信息:姓名%s,性别%s,电话%s,楼号%d,单元号%d,房间号%d,住房面积%2f\n", re[i].name, re[i].gender, re[i].phonenumber, re[i].building, re[i].unit, re[i].room, re[i].area);
-		printf("您应该缴纳的物业费为:%2f元\n", pay);
+		printf("*********************************\n");
+		printf("你的基本信息:\n");
+		printf("姓名:%s\n", re[i].name);
+		printf("性别:%s\n", re[i].gender);
+		printf("联系方式:%s\n", re[i].phonenumber);
+		printf("楼号:%d\n", re[i].building);
+		printf("单元号:%d\n", re[i].unit);
+		printf("房间号:%d\n", re[i].room);
+		printf("住房面积:%.2f\n", re[i].area);
+		printf("*********************************\n");
+		printf("您应该缴纳的物业费为:%.2f元\n", pay);
 	}
 	else
 	{
 		pay = ((re[i].area * re[i].paymonth + re[i].publicpay) * month) * 0.9;
-		printf("基本信息:姓名%s,性别%s,电话%s,楼号%d,单元号%d,房间号%d,住房面积%2f\n", re[i].name, re[i].gender, re[i].phonenumber, re[i].building, re[i].unit, re[i].room, re[i].area);
-		printf("您应该缴纳的物业费为:%2f元\n", pay);
+		printf("*********************************\n");
+		printf("你的基本信息:\n");
+		printf("姓名:%s\n", re[i].name);
+		printf("性别:%s\n", re[i].gender);
+		printf("联系方式:%s\n", re[i].phonenumber);
+		printf("楼号:%d\n", re[i].building);
+		printf("单元号:%d\n", re[i].unit);
+		printf("房间号:%d\n", re[i].room);
+		printf("住房面积:%.2f\n", re[i].area);
+		printf("*********************************\n");
+		printf("您应该缴纳的物业费为:%.2f元\n", pay);
 	}
 	char a[30];
 	sprintf(a, "./缴费记录/%s%d.txt", re[i].name, re[i].room);
@@ -392,13 +424,9 @@ void payment(residentinfo re[])
 	int lines = countLines(fp);
 	if (lines == 1)
 	{
-		//注意到期年月的计算
-		fprintf(fp, "您在 %s 缴纳物业费 %.2f 元,到期年月: %d年%d月\n", nowtime, pay, current_year + (current_month + month) / 12, (current_month + month) % 12);
 
 		//对住户信息中物业到期年月做更新
 		re[i].lastpay.year = current_year + (current_month + month) / 12;
-		re[i].lastpay.month = (current_month + month) % 12;
-
 		if ((current_month + month) % 12 == 0)
 		{
 			re[i].lastpay.month == 12;
@@ -407,11 +435,14 @@ void payment(residentinfo re[])
 		{
 			re[i].lastpay.month = (re[i].lastpay.month + month) % 12;
 		}
+		//注意到期年月的计算
+		fprintf(fp, "您在 %s 缴纳物业费 %.2f 元,到期年月: %d年%d月\n", nowtime, pay, re[i].lastpay.year, re[i].lastpay.month);
+
 
 		FILE* fp1 = fopen("residents.txt", "w+");
 		for (i = 0; i < residentcount; i++)
 		{
-			fprintf(fp1, "%s %s %s %d %d %d %.2f %d %.2f %d,%d\n",
+			fprintf(fp1, "%s %s %s %d %d %d %.2f %d %.2f %d %02d\n",
 				re[i].name, re[i].gender,
 				re[i].phonenumber, re[i].building,
 				re[i].unit, re[i].room, re[i].area,
@@ -419,17 +450,15 @@ void payment(residentinfo re[])
 				re[i].lastpay.year, re[i].lastpay.month
 			);
 		}
-		fclose(fp1);;
+		fclose(fp1);
 		
 	}
 	else
 	{
 
 		fseek(fp, 0, SEEK_END);
-		fprintf(fp, "您在 %s 缴纳物业费 %2f 元,到期年月: %d年%d月\n", nowtime, pay,re[i].lastpay.year + (re[i].lastpay.month + month) / 12, (re[i].lastpay.month + month) % 12);
 		//对住户信息中物业到期年月做更新
 		re[i].lastpay.year = re[i].lastpay.year + (re[i].lastpay.month + month) / 12;
-		
 		if ((re[i].lastpay.month + month) % 12 == 0)
 		{
 			re[i].lastpay.month == 12;
@@ -438,11 +467,15 @@ void payment(residentinfo re[])
 		{
 			re[i].lastpay.month = (re[i].lastpay.month + month) % 12;
 		}
+		fprintf(fp, "您在 %s 缴纳物业费 %.2f 元,到期年月: %d年%d月\n", nowtime, pay,re[i].lastpay.year , re[i].lastpay.month );
+	
+		
+
 
 		FILE* fp1 = fopen("residents.txt", "w+");
 		for (i = 0; i < residentcount; i++)
 		{
-			fprintf(fp1, "%s %s %s %d %d %d %.2f %d %.2f %d %d\n",
+			fprintf(fp1, "%s %s %s %d %d %d %.2f %d %.2f %d %02d\n",
 				re[i].name, re[i].gender,
 				re[i].phonenumber, re[i].building,
 				re[i].unit, re[i].room, re[i].area,
@@ -467,6 +500,7 @@ void overduecount(residentinfo re[]) {
 	time(&current_time);
 	time_info = localtime(&current_time);
 	int current_month, current_year;
+
 	current_month = time_info->tm_mon + 1;
 	current_year = time_info->tm_year + 1900;
 
@@ -485,8 +519,9 @@ void overduecount(residentinfo re[]) {
 			char a[50];
 			sprintf(a, "./未按期缴费住户统计/%d_%d.txt", current_year, current_month);
 			FILE* fp1 = fopen(a, "a+");
-			fprintf(fp1, "%s已欠费%d个月,总欠费金额%2f元\n", re[i].name, qianmonth,money);
-			printf("%s已欠费%d个月,总欠费金额%2f元\n", re[i].name, qianmonth, money);
+			fprintf(fp1, "%s已欠费%d个月,总欠费金额%.2f元\n", re[i].name, qianmonth,money);
+			fprintf(fp1, "--------------------------------------------------------------");
+			printf("%s已欠费%d个月,总欠费金额%.2f元\n", re[i].name, qianmonth, money);
 			fclose(fp1);
 		}
 		else if (current_year == re[i].lastpay.year && current_month > re[i].lastpay.month)
@@ -496,8 +531,9 @@ void overduecount(residentinfo re[]) {
 			char a[50];
 			sprintf(a, "./未按期缴费住户统计/%d_%d.txt", current_year, current_month);
 			FILE* fp1 = fopen(a, "a+");
-			fprintf(fp1, "%s已欠费%d个月,总欠费金额%2f元\n", re[i].name, qianmonth, money); 
-			printf("%s已欠费%d个月,总欠费金额%2f元\n", re[i].name, qianmonth, money);
+			fprintf(fp1, "%s已欠费%d个月,总欠费金额%.2f元\n", re[i].name, qianmonth, money); 
+			fprintf(fp1, "--------------------------------------------------------------");
+			printf("%s已欠费%d个月,总欠费金额%.2f元\n", re[i].name, qianmonth, money);
 			fclose(fp1);
 		}
 	}
