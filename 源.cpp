@@ -57,12 +57,24 @@ void overduecount(residentinfo re[]);
 int countLines(FILE*file);
 
 
+//新增住户留言功能
+void Announcement();
+
+//判断是否是管理员
+//1:是管理员
+//0:不是管理员
+int adm();
 
 
 
 int residentcount=0;
 int main()
 {
+	if (!adm())
+	{
+		return 0 ;
+
+	}
 	int choice;
 	residentinfo residents[100]; //定义住户数组，存放住户信息
 	do
@@ -87,6 +99,10 @@ int main()
 			case 4:
 				overduecount(residents);
 				break;
+			case 5:
+
+				Announcement();
+				break;
 			default:
 				if (choice)
 				{
@@ -103,12 +119,14 @@ int main()
 }
 void menu()
 {
+	system("cls");
 	printf("                            ………………欢迎来到物业缴费程序………………\n");
 	printf("                             ------------------------------------------\n");
 	printf("                            |           1.住户信息管理                 |\n");
 	printf("                            |           2.缴费情况查询                 |\n");
  	printf("                            |           3.物业缴费                     |\n");
 	printf("                            |           4.统计未按期缴费住户           |\n");
+	printf("                            |           5.程序更新公告                 |\n");
 	printf("                            |           0.退出程序                     |\n");
 	printf("                             ------------------------------------------\n");
 }
@@ -508,42 +526,103 @@ void overduecount(residentinfo re[]) {
 
 	int qianmonth;//欠费月数
 	double money;//数额
-
-
+	residentinfo oduere[100];
+	int j = 0;
 	for (int i = 0; i < residentcount; i++)
 	{
-		if (current_year > re[i].lastpay.year)
+		qianmonth = (current_year - re[i].lastpay.year) * 12 + current_month - re[i].lastpay.month;
+		if (qianmonth > 0)
 		{
-			qianmonth = (current_year - re[i].lastpay.year) * 12 + current_month - re[i].lastpay.month;
-			money = qianmonth * (re[i].area * re[i].paymonth + re[i].publicpay);
-			char a[50];
-			sprintf(a, "./未按期缴费住户统计/%d_%d.txt", current_year, current_month);
-			FILE* fp1 = fopen(a, "a+");
-			fprintf(fp1, "%s已欠费%d个月,总欠费金额%.2f元\n", re[i].name, qianmonth,money);
-			fprintf(fp1, "--------------------------------------------------------------");
-			printf("%s已欠费%d个月,总欠费金额%.2f元\n", re[i].name, qianmonth, money);
-			fclose(fp1);
+			oduere[j] = re[i];
+			j++;
 		}
-		else if (current_year == re[i].lastpay.year && current_month > re[i].lastpay.month)
+	}
+	printf("请选择按欠费金额或楼号排序\n");
+	printf("欠费金额(Q)      楼号(L)");
+	char choice[2];
+	scanf("%s", choice);
+	if (!strcmp(choice ,"Q"))
+	{
+		//冒泡排序法 :小的在前
+		for (int i = 0; i < j; i++)
 		{
-			qianmonth = current_month - re[i].lastpay.month;
-			money = qianmonth * (re[i].area * re[i].paymonth + re[i].publicpay);
+			for (int n = 0; n < j - i-1; n++)
+			{
+				int qianmonth1;
+				int qianmonth2;
+
+				qianmonth1 = (current_year - oduere[n].lastpay.year) * 12 + current_month - oduere[n].lastpay.month;
+				qianmonth2 = (current_year - oduere[n + 1].lastpay.year) * 12 + current_month - oduere[n + 1].lastpay.month;
+				if (qianmonth1 * (oduere[n].area * oduere[n].paymonth + oduere[n].publicpay)
+			       > qianmonth2 * (oduere[n + 1].area * oduere[n + 1].paymonth + oduere[n + 1].publicpay))
+				{
+					residentinfo temp=oduere[n];
+					oduere[n] = oduere[n + 1];
+					oduere[n + 1] = temp;
+
+
+				}
+			}
+		}
+
+		for (int i = 0; i < j; i++)
+		{
+			qianmonth = (current_year - oduere[i].lastpay.year) * 12 + current_month - oduere[i].lastpay.month;
+			money = qianmonth * (oduere[i].area * oduere[i].paymonth + oduere[i].publicpay);
 			char a[50];
 			sprintf(a, "./未按期缴费住户统计/%d_%d.txt", current_year, current_month);
 			FILE* fp1 = fopen(a, "a+");
-			fprintf(fp1, "%s已欠费%d个月,总欠费金额%.2f元\n", re[i].name, qianmonth, money); 
+			fprintf(fp1, "户主:%s 楼号%d 房间号%d 已欠费%d个月,总欠费金额%.2f元\n", oduere[i].name, oduere[i].building, oduere[i].room, qianmonth, money);
 			fprintf(fp1, "--------------------------------------------------------------");
-			printf("%s已欠费%d个月,总欠费金额%.2f元\n", re[i].name, qianmonth, money);
+			printf("户主:%s 楼号%d 房间号%d 已欠费%d个月,总欠费金额%.2f元\n", oduere[i].name, oduere[i].building, oduere[i].room, qianmonth, money);
 			fclose(fp1);
 		}
 	}
 
 
 
-	printf("已统计成功\n即将退回至主页面\n");
+
+	
+	if (!strcmp(choice, "L"))
+	{
+		for (int i = 0; i < j; i++)
+		{
+			for (int n = 0; n < j - i-1; n++)
+			{
+				if (oduere[n].building>oduere[n+1].building)
+				{
+					residentinfo temp = oduere[n];
+					oduere[n] = oduere[n + 1];
+					oduere[n + 1] = temp;
+				}
+			}
+		}
+
+		for (int i = 0; i < j; i++)
+		{
+			qianmonth = (current_year - oduere[i].lastpay.year) * 12 + current_month - oduere[i].lastpay.month;
+			money = qianmonth * (oduere[i].area * oduere[i].paymonth + oduere[i].publicpay);
+			char a[50];
+			sprintf(a, "./未按期缴费住户统计/%d_%d.txt", current_year, current_month);
+			FILE* fp1 = fopen(a, "a+");
+			fprintf(fp1, "户主:%s 楼号%d 房间号%d 已欠费%d个月,总欠费金额%.2f元\n", oduere[i].name,oduere[i].building, oduere[i].room, qianmonth, money);
+			fprintf(fp1, "--------------------------------------------------------------");
+			printf("户主:%s 楼号%d 房间号%d 已欠费%d个月,总欠费金额%.2f元\n", oduere[i].name, oduere[i].building, oduere[i].room, qianmonth, money);
+			fclose(fp1);
+		}
+	}
+	if (j == 0)
+	{
+		printf("没有欠费住户\n");
+		printf("即将退回至主页面\n");
+	}
+	else
+	{
+		printf("已统计成功\n");
+		printf("即将退回至主页面\n");
+	}
 	system("pause");
 	return;
-
 }
 int countLines(FILE*file)
 {
@@ -557,4 +636,47 @@ int countLines(FILE*file)
 	}
 	rewind(file);//文件指针归位
 	return count;
+}
+
+
+void Announcement()
+{
+	FILE* fp = fopen("./更新公告.txt", "r");
+	char ann[30];
+	printf("*****************************\n");
+	while (fgets(ann,30,fp)!=0) 
+	{
+		printf("%s\n", ann);
+
+	}
+	printf("*****************************\n");
+
+	fclose(fp);
+
+	printf("即将返回主界面\n");
+	system("pause");
+	return;
+}
+
+//判断是否是管理员
+int adm() 
+{
+	int zhanghao;
+	int mima;
+	printf("************************************************\n");
+	printf("请输入管理员账号:");
+	scanf("%d", &zhanghao);
+	printf("请输入管理员密码:");
+	scanf("%d", &mima);
+	printf("************************************************\n");
+	if (zhanghao == 123456 and mima == 123456)
+	{
+		printf("账号密码正确！请继续操作\n");
+		return 1;
+	}
+	else
+	{
+		printf("账号或密码错误，请重试！\n");
+		return 0;
+	}
 }
